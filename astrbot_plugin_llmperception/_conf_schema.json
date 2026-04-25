@@ -1,0 +1,17 @@
+{
+  "timezone": {
+    "description": "时区",
+    "type": "string",
+    "default": "Asia/Shanghai"
+  },
+  "enable_holiday_perception": {
+    "description": "启用节假日感知",
+    "type": "bool",
+    "default": true
+  },
+  "enable_platform_perception": {
+    "description": "启用平台感知",
+    "type": "bool",
+    "default": true
+  }
+}

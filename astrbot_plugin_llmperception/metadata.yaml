@@ -1,0 +1,7 @@
+name: astrbot_plugin_llmperception
+display_name: LLM 环境感知注入
+desc: AstrBot 环境感知插件，在用户消息前注入时间、星期、时段、平台等信息。
+version: "1.0.0"
+author: 沈砚清
+repo: ""
+type: common

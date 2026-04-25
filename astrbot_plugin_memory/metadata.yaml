@@ -1,0 +1,7 @@
+name: astrbot_plugin_memory
+display_name: 持久化记忆 Memory
+desc: AstrBot 跨会话持久化记忆插件，注入 Soul、用户画像、历史索引、备忘录和 TODO 使用指南。
+version: "1.0.0"
+author: 沈砚清
+repo: ""
+type: common
