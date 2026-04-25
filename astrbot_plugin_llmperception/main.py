@@ -14,7 +14,7 @@ def period(h):
     if 14<=h<18: return '下午'
     if 18<=h<23: return '晚上'
     return '深夜'
-@register('astrbot_plugin_llmperception','沈砚清','环境感知注入插件','1.0.0')
+@register('astrbot_plugin_llmperception','沈砚清','环境感知注入插件','1.0.0','https://github.com/yussica1016/astrbot_context_injection_system')
 class LLMPerceptionPlugin(Star):
     def __init__(self, context:Context, config=None):
         super().__init__(context); self.config=config or {}; self.timezone=self.config.get('timezone','Asia/Shanghai') if isinstance(self.config,dict) else 'Asia/Shanghai'

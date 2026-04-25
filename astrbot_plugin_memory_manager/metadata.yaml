@@ -3,5 +3,5 @@ display_name: 综合记忆管理 Memory Manager
 desc: AstrBot SQLite 记忆管理插件，支持分类保存、查询、简单语义浮现、核心记忆和衰减状态。
 version: "1.0.0"
 author: 沈砚清
-repo: ""
+repo: "https://github.com/yussica1016/astrbot_context_injection_system"
 type: common

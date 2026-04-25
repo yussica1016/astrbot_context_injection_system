@@ -3,10 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.provider import ProviderRequest
-from astrbot.api.star import Context, Star, register
-
-DATA_DIR = Path('/AstrBot/data/plugin_data/astrbot_plugin_memory_manager')
-DB_FILE = DATA_DIR / 'memory_manager.db'
+from astrbot.api.star import Context, Star, register, StarTools
 
 def now(): return datetime.now().isoformat(timespec='seconds')
 def tokens(t):
@@ -16,15 +13,17 @@ def sim(a,b):
     x,y=tokens(a),tokens(b)
     return len(x&y)/len(x|y) if x and y else 0.0
 
-@register('astrbot_plugin_memory_manager','沈砚清','综合记忆管理系统','1.0.0')
+@register('astrbot_plugin_memory_manager','沈砚清','综合记忆管理系统','1.0.0','https://github.com/yussica1016/astrbot_context_injection_system')
 class MemoryManagerPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(DB_FILE) as db:
+        self.data_dir = StarTools.get_data_dir(self.name)
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.db_file = self.data_dir / 'memory_manager.db'
+        with sqlite3.connect(self.db_file) as db:
             db.execute('CREATE TABLE IF NOT EXISTS memories(id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT, category TEXT, content TEXT, tags TEXT DEFAULT "", importance INTEGER DEFAULT 5, status TEXT DEFAULT "active", layer TEXT DEFAULT "event", resolved INTEGER DEFAULT 0)')
             db.commit()
-    def conn(self): return sqlite3.connect(DB_FILE)
+    def conn(self): return sqlite3.connect(self.db_file)
     def save(self, content, category='daily', tags='', importance=5):
         with self.conn() as db:
             db.execute('INSERT INTO memories(created_at,category,content,tags,importance) VALUES(?,?,?,?,?)',(now(),category,content,tags,int(importance)))
@@ -33,7 +32,7 @@ class MemoryManagerPlugin(Star):
     def surface(self, q='', limit=3):
         with self.conn() as db:
             rows=db.execute('SELECT id,content,category,importance,layer FROM memories WHERE status="active" AND layer!="archive" ORDER BY importance DESC,id DESC LIMIT 100').fetchall()
-        top=sorted([(100 if r[4]=='core' else 0)+(r[3] or 5)+sim(q,r[1])*10, sim(q,r[1]), r] for r in rows, reverse=True, key=lambda x:x[0])[:int(limit)]
+        top=sorted([((100 if r[4]=='core' else 0)+(r[3] or 5)+sim(q,r[1])*10, sim(q,r[1]), r) for r in rows], reverse=True, key=lambda x:x[0])[:int(limit)]
         return '\n'.join(f'- #{r[0]} [{r[2]}][{r[4]}] sim:{s:.2f} {r[1]}' for _,s,r in top)
     def query(self, category=None, keyword=None, limit=10):
         sql='SELECT id,category,content,tags,layer FROM memories WHERE status="active"'; args=[]
