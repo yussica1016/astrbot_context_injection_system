@@ -37,7 +37,9 @@ class MemoryManagerPlugin(Star):
     def query(self, category=None, keyword=None, limit=10):
         sql='SELECT id,category,content,tags,layer FROM memories WHERE status="active"'; args=[]
         if category: sql+=' AND category=?'; args.append(category)
-        if keyword: sql+=' AND content LIKE ?'; args.append(f'%{keyword}%')
+        if keyword:
+            escaped=keyword.replace('\\','\\\\').replace('%','\\%').replace('_','\\_')
+            sql+=" AND content LIKE ? ESCAPE '\\'"; args.append(f'%{escaped}%')
         sql+=' ORDER BY id DESC LIMIT ?'; args.append(int(limit))
         with self.conn() as db: rows=db.execute(sql,args).fetchall()
         return '\n'.join(f'#{r[0]} [{r[1]}][{r[4]}] {r[2]} tags:{r[3]}' for r in rows) or '没有找到记忆。'
@@ -59,11 +61,15 @@ class MemoryManagerPlugin(Star):
             with self.conn() as db: n=db.execute('SELECT COUNT(*) FROM memories WHERE status="active"').fetchone()[0]
             yield event.plain_result(f'当前 active 记忆：{n} 条'); return
         if a=='core' and len(parts)>1:
-            with self.conn() as db: db.execute('UPDATE memories SET layer="core" WHERE id=?',(int(parts[1]),)); db.commit()
-            yield event.plain_result(f'#{parts[1]} 已标记为 core。'); return
+            try: mid=int(parts[1])
+            except ValueError: yield event.plain_result('请提供有效的记忆ID（数字）。'); return
+            with self.conn() as db: db.execute('UPDATE memories SET layer="core" WHERE id=?',(mid,)); db.commit()
+            yield event.plain_result(f'#{mid} 已标记为 core。'); return
         if a=='resolve' and len(parts)>1:
-            with self.conn() as db: db.execute('UPDATE memories SET resolved=1 WHERE id=?',(int(parts[1]),)); db.commit()
-            yield event.plain_result(f'#{parts[1]} 已标记为已解决。'); return
+            try: mid=int(parts[1])
+            except ValueError: yield event.plain_result('请提供有效的记忆ID（数字）。'); return
+            with self.conn() as db: db.execute('UPDATE memories SET resolved=1 WHERE id=?',(mid,)); db.commit()
+            yield event.plain_result(f'#{mid} 已标记为已解决。'); return
     @filter.llm_tool()
     async def memory_save(self,event:AstrMessageEvent,content:str,category:str='daily',tags:str='',importance:int=5)->str:
         return self.save(content,category,tags,importance)
